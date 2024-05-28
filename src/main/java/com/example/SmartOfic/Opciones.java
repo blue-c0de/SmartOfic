@@ -102,6 +102,8 @@ public class Opciones extends JFrame {
         super("Opciones");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setIconImage(Toolkit.getDefaultToolkit().getImage("F:\\TFG2\\SmartOfic\\src\\main\\resources\\drawable\\logo.png"));
+        setSize(600, 500);  
+        setLocationRelativeTo(null); 
 
         cardLayout = new CardLayout();
         contentPane = new JPanel(cardLayout);
@@ -276,6 +278,15 @@ public class Opciones extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 cardLayout.show(contentPane, "Primera Página");
+
+                try {
+
+                    dispose();
+					new Opciones().setVisible(true);
+				} catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             }
         });
         
@@ -582,8 +593,16 @@ public class Opciones extends JFrame {
         volver.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cardLayout.show(contentPane, "Tercera Página");
-//                dispose(); ///////////////////////////////
+                cardLayout.show(contentPane, "Primera Página");
+
+                try {
+
+                    dispose();
+					new Opciones().setVisible(true);
+				} catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             }
         });
         
@@ -810,6 +829,15 @@ public class Opciones extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 cardLayout.show(contentPane, "Primera Página");
+
+                try {
+
+                    dispose();
+					new Opciones().setVisible(true);
+				} catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             }
         });
 
@@ -875,6 +903,15 @@ public class Opciones extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     cardLayout.show(contentPane, "Primera Página");
+
+                    try {
+
+                        dispose();
+    					new Opciones().setVisible(true);
+    				} catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
+    					// TODO Auto-generated catch block
+    					e1.printStackTrace();
+    				}
                 }
             });
 

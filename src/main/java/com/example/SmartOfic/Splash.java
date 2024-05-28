@@ -18,6 +18,7 @@ public class Splash extends JFrame {
     public Splash() {
         super("Splash");
         setSize(200, 230);
+        setLocationRelativeTo(null); 
         setIconImage(Toolkit.getDefaultToolkit().getImage("F:\\TFG2\\SmartOfic\\src\\main\\resources\\drawable\\logo.png"));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
