@@ -2,23 +2,33 @@ package com.example.SmartOfic;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.*;
+import javax.mail.internet.*;
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -32,6 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import com.google.api.core.ApiFuture;
@@ -68,14 +79,9 @@ import java.util.HashSet;
 import java.util.Set;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.property.TextAlignment;
-import com.itextpdf.kernel.font.PdfFontFactory;
 
+import com.sun.mail.util.MailSSLSocketFactory;
 
 public class Opciones extends JFrame {
 
@@ -99,7 +105,7 @@ public class Opciones extends JFrame {
         super("Opciones");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setIconImage(Toolkit.getDefaultToolkit().getImage("F:/TFG2/SmartOfic/src/main/resources/drawable/logo.png"));
-        setSize(600, 590);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiza la ventana
         setLocationRelativeTo(null);
 
         cardLayout = new CardLayout();
@@ -127,26 +133,35 @@ public class Opciones extends JFrame {
     }
 
     private JPanel createFirstPanel() {
-        JPanel main =  new JPanel(new GridLayout(5, 1, 10, 10));
-        main.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel main = new JPanel(new GridLayout(5, 1, 10, 10));
+        main.setBorder(new EmptyBorder(10, 10, 10, 10));
+        main.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel titulo = new JLabel("Escoge la opción del parte");
         titulo.setHorizontalAlignment(SwingConstants.CENTER);
-        main.add(titulo, BorderLayout.NORTH);
+        main.add(titulo);
 
         JButton opcionUno = new JButton("Crear");
+        opcionUno.setBackground(new Color(255, 239, 213)); // Light pastel color
+        opcionUno.setFocusPainted(false);
         opcionUno.addActionListener(e -> cardLayout.show(contentPane, "Segunda Página"));
         main.add(opcionUno);
 
-        JButton opcionDos = new JButton("Modificar");
+        JButton opcionDos = new JButton("Consultar/Modificar");
+        opcionDos.setBackground(new Color(255, 239, 213)); // Light pastel color
+        opcionDos.setFocusPainted(false);
         opcionDos.addActionListener(e -> cardLayout.show(contentPane, "Tercera Página"));
         main.add(opcionDos);
 
         JButton opcionTres = new JButton("Exportar Incidencias Resueltas en PDF");
+        opcionTres.setBackground(new Color(255, 239, 213)); // Light pastel color
+        opcionTres.setFocusPainted(false);
         opcionTres.addActionListener(e -> cardLayout.show(contentPane, "Cuarta Página"));
         main.add(opcionTres);
 
         JButton opcionCuatro = new JButton("Mapa de Operarios");
+        opcionCuatro.setBackground(new Color(255, 239, 213)); // Light pastel color
+        opcionCuatro.setFocusPainted(false);
         opcionCuatro.addActionListener(e -> cardLayout.show(contentPane, "Quinta Página"));
         main.add(opcionCuatro);
 
@@ -154,8 +169,9 @@ public class Opciones extends JFrame {
     }
 
     private JPanel createSecondPanel() throws IOException, ExecutionException, InterruptedException {
-        JPanel agregar =  new JPanel(new GridLayout(9, 1, 10, 10));
-        agregar.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel agregar = new JPanel(new GridLayout(9, 1, 10, 10));
+        agregar.setBorder(new EmptyBorder(10, 10, 10, 10));
+        agregar.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         // FORMULARIO
         JLabel label = new JLabel("Rellenar Formulario");
@@ -164,6 +180,7 @@ public class Opciones extends JFrame {
 
         // ESTADO
         JPanel estadoPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        estadoPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel estadoLabel = new JLabel("Estado");
         estadoLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -181,6 +198,7 @@ public class Opciones extends JFrame {
 
         // TITULO
         JPanel tituloPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        tituloPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel tituloLabel = new JLabel("Título de Incidencia");
         tituloLabel.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -192,6 +210,8 @@ public class Opciones extends JFrame {
 
         // CATEGORIA
         JPanel categoriaPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        categoriaPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
+
         JLabel categoriaLabel = new JLabel("Categoría");
         categoriaLabel.setVerticalAlignment(SwingConstants.BOTTOM);
 
@@ -216,8 +236,10 @@ public class Opciones extends JFrame {
 
         // OPERARIO
         JPanel operarioPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        operarioPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
+
         JLabel operarioLabel = new JLabel("Operarios");
-        categoriaLabel.setVerticalAlignment(SwingConstants.BOTTOM);
+        operarioLabel.setVerticalAlignment(SwingConstants.BOTTOM);
 
         inicializarFirebase();
         Firestore db = FirestoreClient.getFirestore();
@@ -243,6 +265,7 @@ public class Opciones extends JFrame {
 
         // CONTACTO
         JPanel contactoPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        contactoPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel contactoLabel = new JLabel("Número de contacto");
         contactoLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -254,6 +277,7 @@ public class Opciones extends JFrame {
 
         // DIRECCION
         JPanel dirPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        dirPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel dirLabel = new JLabel("Dirección de domicilio");
         dirLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -265,6 +289,7 @@ public class Opciones extends JFrame {
 
         // DESCRIPCION
         JPanel descPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        descPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel descLabel = new JLabel("Descripción de Incidencia");
         descLabel.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -276,8 +301,13 @@ public class Opciones extends JFrame {
 
         // BOTONES
         JPanel enviarPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        enviarPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JButton volver = new JButton("Volver");
+        volver.setFont(new Font("Arial", Font.PLAIN, 12));
+        volver.setBackground(new Color(173, 216, 230)); // Light blue color
+        volver.setFocusPainted(false);
+        volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         volver.addActionListener(e -> {
             cardLayout.show(contentPane, "Primera Página");
 
@@ -290,6 +320,10 @@ public class Opciones extends JFrame {
         });
 
         JButton enviar = new JButton("Enviar");
+        enviar.setFont(new Font("Arial", Font.PLAIN, 12));
+        enviar.setBackground(new Color(173, 216, 230)); // Light blue color
+        enviar.setFocusPainted(false);
+        enviar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         enviar.addActionListener(e -> {
             try {
                 inicializarFirebase();
@@ -303,7 +337,7 @@ public class Opciones extends JFrame {
                 String estado = normal.isSelected() ? "NORMAL" : grave.isSelected() ? "GRAVE" : "SIN_ESTADO";
 
                 String categoria;
-                if(comboBox.getSelectedItem().equals("Escoge una categoría")) {
+                if (comboBox.getSelectedItem().equals("Escoge una categoría")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge una categoría válida.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 } else {
@@ -311,47 +345,36 @@ public class Opciones extends JFrame {
                 }
 
                 String oper;
-                if(comboOpeBox.getSelectedItem().equals("Escoge un operario")) {
+                if (comboOpeBox.getSelectedItem().equals("Escoge un operario")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge un operario válido.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 } else {
                     oper = (String) comboOpeBox.getSelectedItem();
                 }
 
-
                 if (estado.equals("SIN_ESTADO")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge un estado válido.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    estado = normal.isSelected() ? "NORMAL" : "GRAVE";
                 }
 
-                if(contacto.isEmpty()){
+                if (contacto.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca el número de contacto.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    contacto = contactoField.getText();
                 }
 
-                if(direccion.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Por favor, introduzca la dirección del domiciliio.", "Error", JOptionPane.ERROR_MESSAGE);
+                if (direccion.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Por favor, introduzca la dirección del domicilio.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    direccion = contactoField.getText();
                 }
 
-                if(descripcion.isEmpty()){
+                if (descripcion.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca la descripción del problema.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    descripcion = contactoField.getText();
                 }
 
-                if(titulo.isEmpty()){
+                if (titulo.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca el título.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    titulo = contactoField.getText();
                 }
 
                 // Crear un mapa con los datos
@@ -410,12 +433,15 @@ public class Opciones extends JFrame {
     }
 
     private JPanel createThirdPanel() throws IOException {
-        JPanel modificar =  new JPanel(new GridLayout(2, 1, 10, 10));
-        modificar.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel modificar = new JPanel(new BorderLayout());
+        modificar.setBorder(new EmptyBorder(10, 10, 10, 10));
+        modificar.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         // LISTA
         CustomListModel listModel = new CustomListModel();
         JList<String> lista = new JList<>(listModel);
+        lista.setBackground(new Color(255, 239, 213)); // Light pastel color
+        lista.setSelectionBackground(new Color(255, 228, 225)); // Another pastel color
 
         String[] estados = {"GRAVE", "NORMAL"};
 
@@ -446,7 +472,7 @@ public class Opciones extends JFrame {
         }
 
         // SELECCIONAR
-        lista.addMouseListener(new MouseListener() {
+        lista.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = lista.locationToIndex(e.getPoint());
@@ -459,46 +485,30 @@ public class Opciones extends JFrame {
                 contentPane.add(modificarPanel, "Modificar Página");
                 cardLayout.show(contentPane, "Modificar Página");
             }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
         });
-
 
         // BOTONES
         JButton volver = new JButton("Volver");
+        volver.setFont(new Font("Arial", Font.PLAIN, 12));
+        volver.setBackground(new Color(173, 216, 230)); // Light blue color
+        volver.setFocusPainted(false);
+        volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        volver.setPreferredSize(new java.awt.Dimension(80, 25));
         volver.addActionListener(e -> cardLayout.show(contentPane, "Primera Página"));
 
         modificar.add(new JScrollPane(lista), BorderLayout.CENTER);
-        modificar.add(volver);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(240, 248, 255)); // Match the main panel background
+        bottomPanel.add(volver);
+        modificar.add(bottomPanel, BorderLayout.SOUTH);
 
         return modificar;
     }
 
     private JPanel modificarPanel(String coleccion, String documento) throws IOException, ExecutionException, InterruptedException {
-        JPanel modificar =  new JPanel(new GridLayout(9, 1, 10, 10));
-        modificar.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel modificar = new JPanel(new GridLayout(9, 1, 10, 10));
+        modificar.setBorder(new EmptyBorder(10, 10, 10, 10));
+        modificar.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         // FORMULARIO
         JLabel label = new JLabel("Rellenar Formulario");
@@ -507,6 +517,7 @@ public class Opciones extends JFrame {
 
         // ESTADO
         JPanel estadoPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        estadoPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel estadoLabel = new JLabel("Estado");
         estadoLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -524,6 +535,7 @@ public class Opciones extends JFrame {
 
         // TITULO
         JPanel tituloPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        tituloPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel tituloLabel = new JLabel("Título de Incidencia");
         tituloLabel.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -535,6 +547,8 @@ public class Opciones extends JFrame {
 
         // CATEGORIA
         JPanel categoriaPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        categoriaPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
+
         JLabel categoriaLabel = new JLabel("Categoría");
         categoriaLabel.setVerticalAlignment(SwingConstants.BOTTOM);
 
@@ -559,6 +573,8 @@ public class Opciones extends JFrame {
 
         // OPERARIO
         JPanel operarioPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        operarioPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
+
         JLabel operarioLabel = new JLabel("Operarios");
         categoriaLabel.setVerticalAlignment(SwingConstants.BOTTOM);
 
@@ -586,6 +602,7 @@ public class Opciones extends JFrame {
 
         // CONTACTO
         JPanel contactoPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        contactoPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel contactoLabel = new JLabel("Número de contacto");
         contactoLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -597,6 +614,7 @@ public class Opciones extends JFrame {
 
         // DIRECCION
         JPanel dirPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        dirPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel dirLabel = new JLabel("Dirección de domicilio");
         dirLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -608,6 +626,7 @@ public class Opciones extends JFrame {
 
         // DESCRIPCION
         JPanel descPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        descPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JLabel descLabel = new JLabel("Descripción de Incidencia");
         descLabel.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -654,8 +673,14 @@ public class Opciones extends JFrame {
         }
 
         JPanel enviarPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        enviarPanel.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         JButton volver = new JButton("Volver");
+        volver.setFont(new Font("Arial", Font.PLAIN, 12));
+        volver.setBackground(new Color(173, 216, 230)); // Light blue color
+        volver.setFocusPainted(false);
+        volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        volver.setPreferredSize(new java.awt.Dimension(80, 25));
         volver.addActionListener(e -> {
             cardLayout.show(contentPane, "Primera Página");
 
@@ -663,12 +688,15 @@ public class Opciones extends JFrame {
                 dispose();
                 new Opciones().setVisible(true);
             } catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
         });
 
         JButton enviar = new JButton("Enviar");
+        enviar.setFont(new Font("Arial", Font.PLAIN, 12));
+        enviar.setBackground(new Color(173, 216, 230)); // Light blue color
+        enviar.setFocusPainted(false);
+        enviar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         enviar.addActionListener(e -> {
             try {
                 inicializarFirebase();
@@ -682,7 +710,7 @@ public class Opciones extends JFrame {
                 String estado = normal.isSelected() ? "NORMAL" : grave.isSelected() ? "GRAVE" : "SIN_ESTADO";
 
                 String categoria;
-                if(comboBox.getSelectedItem().equals("Escoge una categoría")) {
+                if (comboBox.getSelectedItem().equals("Escoge una categoría")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge una categoría válida.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 } else {
@@ -690,47 +718,36 @@ public class Opciones extends JFrame {
                 }
 
                 String oper;
-                if(comboOpeBox.getSelectedItem().equals("Escoge un operario")) {
+                if (comboOpeBox.getSelectedItem().equals("Escoge un operario")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge un operario válido.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 } else {
                     oper = (String) comboOpeBox.getSelectedItem();
                 }
 
-
                 if (estado.equals("SIN_ESTADO")) {
                     JOptionPane.showMessageDialog(null, "Por favor, escoge un estado válido.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    estado = normal.isSelected() ? "NORMAL" : "GRAVE";
                 }
 
-                if(contacto.isEmpty()){
+                if (contacto.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca el número de contacto.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    contacto = contactoField.getText();
                 }
 
-                if(direccion.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Por favor, introduzca la dirección del domiciliio.", "Error", JOptionPane.ERROR_MESSAGE);
+                if (direccion.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Por favor, introduzca la dirección del domicilio.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    direccion = contactoField.getText();
                 }
 
-                if(descripcion.isEmpty()){
+                if (descripcion.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca la descripción del problema.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    descripcion = contactoField.getText();
                 }
 
-                if(titulo.isEmpty()){
+                if (titulo.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, introduzca el título.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
-                } else {
-                    titulo = contactoField.getText();
                 }
 
                 // Crear un mapa con los datos
@@ -793,12 +810,15 @@ public class Opciones extends JFrame {
     }
 
     private JPanel createFourthPanel() throws IOException {
-        JPanel pdf =  new JPanel(new GridLayout(2, 1, 10, 10));
-        pdf.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel pdf = new JPanel(new BorderLayout());
+        pdf.setBorder(new EmptyBorder(10, 10, 10, 10));
+        pdf.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         // LISTA
         CustomListModel listModel = new CustomListModel();
         JList<String> lista = new JList<>(listModel);
+        lista.setBackground(new Color(255, 239, 213)); // Light pastel color
+        lista.setSelectionBackground(new Color(255, 228, 225)); // Another pastel color
 
         List<String> states = new ArrayList<>();
         List<String> docs = new ArrayList<>();
@@ -845,13 +865,13 @@ public class Opciones extends JFrame {
         }
 
         // SELECCIONAR
-        lista.addMouseListener(new MouseListener() {
+        lista.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = lista.locationToIndex(e.getPoint());
 
                 // Ruta del archivo PDF de salida
-                String dest = System.getProperty("user.home") + File.separator + "Downloads" + File.separator +categoria.get(index) +"-" + states.get(index) +"-" +docs.get(index) + ".pdf";
+                String dest = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + categoria.get(index) + "-" + states.get(index) + "-" + docs.get(index) + ".pdf";
 
                 try {
                     // Crear un escritor de PDF
@@ -928,64 +948,52 @@ public class Opciones extends JFrame {
                     // Cerrar el documento
                     document.close();
 
-
-                    JOptionPane.showMessageDialog(null, "PDF correctamente descargado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    // Preguntar si se desea enviar por correo electrónico
+                    int response = JOptionPane.showConfirmDialog(null, "PDF correctamente descargado. ¿Desea enviarlo por correo electrónico?", "Enviar por correo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (response == JOptionPane.YES_OPTION) {
+                        String email = JOptionPane.showInputDialog("Ingrese el email de destino:");
+                        if (email != null && !email.isEmpty()) {
+                            enviarCorreoConPDF(email, dest);
+                            JOptionPane.showMessageDialog(null, "Correo enviado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
                 } catch (IOException e3) {
                     e3.printStackTrace();
                 }
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                // TODO Auto-generated method stub
-
             }
         });
 
-
         // BOTONES
         JButton volver = new JButton("Volver");
+        volver.setFont(new Font("Arial", Font.PLAIN, 12));
+        volver.setBackground(new Color(173, 216, 230)); // Light blue color
+        volver.setFocusPainted(false);
+        volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        volver.setPreferredSize(new java.awt.Dimension(80, 25));
         volver.addActionListener(e -> {
             cardLayout.show(contentPane, "Primera Página");
 
             try {
-
                 dispose();
                 new Opciones().setVisible(true);
             } catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
         });
 
         pdf.add(new JScrollPane(lista), BorderLayout.CENTER);
-        pdf.add(volver);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(240, 248, 255)); // Match the main panel background
+        bottomPanel.add(volver);
+        pdf.add(bottomPanel, BorderLayout.SOUTH);
 
         return pdf;
     }
 
     public JPanel createFifthPanel() throws IOException, InterruptedException, ExecutionException {
-        JPanel mapa = new JPanel(new GridLayout(2, 1, 10, 10));
-        mapa.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel mapa = new JPanel(new BorderLayout());
+        mapa.setBorder(new EmptyBorder(10, 10, 10, 10));
+        mapa.setBackground(new Color(240, 248, 255)); // Light pastel color
 
         inicializarFirebase();
         Firestore db = FirestoreClient.getFirestore();
@@ -1029,26 +1037,32 @@ public class Opciones extends JFrame {
             mapViewer.setAddressLocation(geo);
 
             // Añadir el mapa al panel
-            mapa.add(mapViewer);
-            mapa.revalidate();
-            mapa.repaint();
+            mapa.add(mapViewer, BorderLayout.CENTER);
 
             // BOTONES
             JButton volver = new JButton("Volver");
+            volver.setFont(new Font("Arial", Font.PLAIN, 12));
+            volver.setBackground(new Color(173, 216, 230)); // Light blue color
+            volver.setFocusPainted(false);
+            volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            volver.setPreferredSize(new java.awt.Dimension(80, 25));
             volver.addActionListener(e -> {
                 cardLayout.show(contentPane, "Primera Página");
 
                 try {
-
                     dispose();
                     new Opciones().setVisible(true);
                 } catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
             });
 
-            mapa.add(volver);
+            // Añadir el botón de volver al panel
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setBackground(new Color(240, 248, 255)); // Match the main panel background
+            bottomPanel.add(volver);
+            mapa.add(bottomPanel, BorderLayout.SOUTH);
+
         });
 
         return mapa;
@@ -1064,6 +1078,55 @@ public class Opciones extends JFrame {
                     .build();
 
             FirebaseApp.initializeApp(options);
+        }
+    }
+
+    private void enviarCorreoConPDF(String emailDestino, String rutaArchivoPDF) {
+        String remitente = "smartoper@proyectosasr.com";
+        String clave = "sasr2024sasr";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.proyectosasr.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+
+        try {
+            MailSSLSocketFactory sf = new MailSSLSocketFactory();
+            sf.setTrustAllHosts(true);
+            props.put("mail.smtp.ssl.socketFactory", sf);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(remitente, clave);
+            }
+        });
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(remitente));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailDestino));
+            message.setSubject("Adjunto encontrarás informe sobre la resolucion de la incidencia.");
+            message.setText("Adjunto encontrarás informe sobre la resolucion de la incidencia.");
+
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            Multipart multipart = new MimeMultipart();
+
+            messageBodyPart = new MimeBodyPart();
+            DataSource source = new FileDataSource(rutaArchivoPDF);
+            messageBodyPart.setDataHandler(new DataHandler(source));
+            messageBodyPart.setFileName(new File(rutaArchivoPDF).getName());
+            multipart.addBodyPart(messageBodyPart);
+
+            message.setContent(multipart);
+
+            Transport.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
