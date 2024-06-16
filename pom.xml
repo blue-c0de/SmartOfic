@@ -64,6 +64,12 @@
 	    <artifactId>jxmapviewer2</artifactId>
 	    <version>2.8</version>
 	</dependency>
+      <!--  BD REMOTO -->
+      <dependency>
+          <groupId>org.mariadb.jdbc</groupId>
+          <artifactId>mariadb-java-client</artifactId>
+          <version>3.3.3</version>
+      </dependency>
       <!--  MAIL -->
       <dependency>
           <groupId>javax.mail</groupId>

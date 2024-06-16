@@ -7,8 +7,6 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -74,7 +72,6 @@ import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
-import javax.swing.*;
 import java.util.HashSet;
 import java.util.Set;
 import com.itextpdf.io.image.ImageData;
@@ -82,6 +79,12 @@ import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.layout.element.Image;
 
 import com.sun.mail.util.MailSSLSocketFactory;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class Opciones extends JFrame {
 
@@ -117,6 +120,7 @@ public class Opciones extends JFrame {
         JPanel terceroPanel = createThirdPanel();
         JPanel cuartoPanel = createFourthPanel();
         JPanel quintoPanel = createFifthPanel();
+        JPanel sextoPanel = createSixthPanel();
 
         // Agregar páginas al cardPanel
         contentPane.add(primerPanel, "Primera Página");
@@ -124,6 +128,7 @@ public class Opciones extends JFrame {
         contentPane.add(terceroPanel, "Tercera Página");
         contentPane.add(cuartoPanel, "Cuarta Página");
         contentPane.add(quintoPanel, "Quinta Página");
+        contentPane.add(sextoPanel, "Sexta Página");
 
         // Agregar cardPanel al JFrame
         getContentPane().add(contentPane);
@@ -133,7 +138,7 @@ public class Opciones extends JFrame {
     }
 
     private JPanel createFirstPanel() {
-        JPanel main = new JPanel(new GridLayout(5, 1, 10, 10));
+        JPanel main = new JPanel(new GridLayout(6, 1, 10, 10));
         main.setBorder(new EmptyBorder(10, 10, 10, 10));
         main.setBackground(new Color(240, 248, 255)); // Light pastel color
 
@@ -158,6 +163,12 @@ public class Opciones extends JFrame {
         opcionTres.setFocusPainted(false);
         opcionTres.addActionListener(e -> cardLayout.show(contentPane, "Cuarta Página"));
         main.add(opcionTres);
+
+        JButton opcionCinco = new JButton("Exportar Incidencia a MySQL");
+        opcionCinco.setBackground(new Color(255, 239, 213)); // Light pastel color
+        opcionCinco.setFocusPainted(false);
+        opcionCinco.addActionListener(e -> cardLayout.show(contentPane, "Sexta Página"));
+        main.add(opcionCinco);
 
         JButton opcionCuatro = new JButton("Mapa de Operarios");
         opcionCuatro.setBackground(new Color(255, 239, 213)); // Light pastel color
@@ -1066,6 +1077,157 @@ public class Opciones extends JFrame {
         });
 
         return mapa;
+    }
+
+    public JPanel createSixthPanel() throws IOException {
+        JPanel sql = new JPanel(new BorderLayout());
+        sql.setBorder(new EmptyBorder(10, 10, 10, 10));
+        sql.setBackground(new Color(240, 248, 255)); // Light pastel color
+
+        // LISTA
+        CustomListModel listModel = new CustomListModel();
+        JList<String> lista = new JList<>(listModel);
+        lista.setBackground(new Color(255, 239, 213)); // Light pastel color
+        lista.setSelectionBackground(new Color(255, 228, 225)); // Another pastel color
+
+        List<String> states = new ArrayList<>();
+        List<String> docs = new ArrayList<>();
+        List<String> descripcion = new ArrayList<>();
+        List<String> direccion = new ArrayList<>();
+        List<String> categoria = new ArrayList<>();
+        List<String> opes = new ArrayList<>();
+        List<String> titulo = new ArrayList<>();
+        List<String> contacto = new ArrayList<>();
+        List<String> horaFin = new ArrayList<>();
+        List<String> horaIni = new ArrayList<>();
+        List<String> imagen = new ArrayList<>();
+        List<String> solucion = new ArrayList<>();
+
+        inicializarFirebase();
+        CollectionReference collectionRef = FirestoreClient.getFirestore().collection("resuelto");
+        ApiFuture<QuerySnapshot> future = collectionRef.get();
+
+        try {
+            QuerySnapshot querySnapshot = future.get();
+            List<QueryDocumentSnapshot> documents = querySnapshot.getDocuments();
+
+            for (DocumentSnapshot document : documents) {
+                // ESTABLECER LISTA
+                String tituloDocumento = document.getString("titulo");
+                String estadoDocumento = document.getString("estado");
+
+                // BD SQL
+                String url = "jdbc:mariadb://mysql.proyectosasr.com:3306/smartoper";
+                String usuario = "jota";
+                String contrasena = "sasr2024sasr";
+
+                try {
+                    Class.forName("org.mariadb.jdbc.Driver");
+                    Connection conexion = DriverManager.getConnection(url, usuario, contrasena);
+
+                    String consulta = "SELECT * FROM resuelto WHERE titulo = ?";
+                    PreparedStatement statement = conexion.prepareStatement(consulta);
+                    statement.setString(1, tituloDocumento);
+                    ResultSet resultSet = statement.executeQuery();
+
+                    if (!resultSet.next()) {
+                        listModel.addElement("Título: " + tituloDocumento + ", Estado: " + estadoDocumento);
+
+                        states.add(estadoDocumento);
+                        docs.add(document.getId());
+                        descripcion.add(document.getString("descripcion"));
+                        direccion.add(document.getString("direccion"));
+                        categoria.add(document.getString("categoria"));
+                        opes.add(document.getString("operario"));
+                        titulo.add(tituloDocumento);
+                        contacto.add(document.getString("contacto"));
+                        horaFin.add(document.getString("horaFin"));
+                        horaIni.add(document.getString("horaIni"));
+                        imagen.add(document.getString("imagen"));
+                        solucion.add(document.getString("solucion"));
+                    }
+
+                    conexion.close();
+                } catch (SQLException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        // SELECCIONAR
+        lista.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // BD SQL
+                String url = "jdbc:mariadb://mysql.proyectosasr.com:3306/smartoper";
+                String usuario = "jota";
+                String contrasena = "sasr2024sasr";
+                int index = lista.locationToIndex(e.getPoint());
+
+                try {
+                    PreparedStatement statement = null;
+                    Class.forName("org.mariadb.jdbc.Driver");
+                    Connection conexion = DriverManager.getConnection(url, usuario, contrasena);
+
+                    String consulta = "INSERT INTO resuelto (titulo, categoria, contacto, descripcion, direccion, estado, horaIni, horaFin, imagen, operario, solucion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    statement = conexion.prepareStatement(consulta);
+                    statement.setString(1, titulo.get(index));
+                    statement.setString(2, categoria.get(index));
+                    statement.setString(3, contacto.get(index));
+                    statement.setString(4, descripcion.get(index));
+                    statement.setString(5, direccion.get(index));
+                    statement.setString(6, states.get(index));
+                    statement.setString(7, horaIni.get(index));
+                    statement.setString(8, horaFin.get(index));
+                    statement.setString(9, imagen.get(index));
+                    statement.setString(10, opes.get(index));
+                    statement.setString(11, solucion.get(index));
+
+                    int rowsInserted = statement.executeUpdate();
+                    if (rowsInserted > 0) {
+                        JOptionPane.showMessageDialog(null, "Agregado exitosamente al SQLite.", "Exitoso", JOptionPane.INFORMATION_MESSAGE);
+                        try {
+                            dispose();
+                            new Opciones().setVisible(true);
+                        } catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException ee) {
+                            ee.printStackTrace();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Por favor, introduzca el número de contacto.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (SQLException | ClassNotFoundException e4) {
+                    e4.printStackTrace();
+                }
+            }
+        });
+
+        // BOTONES
+        JButton volver = new JButton("Volver");
+        volver.setFont(new Font("Arial", Font.PLAIN, 12));
+        volver.setBackground(new Color(173, 216, 230)); // Light blue color
+        volver.setFocusPainted(false);
+        volver.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        volver.setPreferredSize(new java.awt.Dimension(80, 25));
+        volver.addActionListener(e -> {
+            cardLayout.show(contentPane, "Primera Página");
+
+            try {
+                dispose();
+                new Opciones().setVisible(true);
+            } catch (IOException | GeoIp2Exception | InterruptedException | ExecutionException e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        sql.add(new JScrollPane(lista), BorderLayout.CENTER);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(240, 248, 255)); // Match the main panel background
+        bottomPanel.add(volver);
+        sql.add(bottomPanel, BorderLayout.SOUTH);
+
+        return sql;
     }
 
     private void inicializarFirebase() throws IOException {
