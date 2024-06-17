@@ -254,7 +254,7 @@ public class Opciones extends JFrame {
 
         inicializarFirebase();
         Firestore db = FirestoreClient.getFirestore();
-        QuerySnapshot querySnapshot = db.collection("oficinista").get().get();
+        QuerySnapshot querySnapshot = db.collection("operario").get().get();
 
         List<String> ope = new ArrayList<>();
 
@@ -591,7 +591,7 @@ public class Opciones extends JFrame {
 
         inicializarFirebase();
         Firestore db = FirestoreClient.getFirestore();
-        QuerySnapshot querySnapshot = db.collection("oficinista").get().get();
+        QuerySnapshot querySnapshot = db.collection("operario").get().get();
 
         List<String> ope = new ArrayList<>();
 
